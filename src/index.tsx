@@ -18,25 +18,44 @@ const root = ReactDOM.createRoot(
   document.getElementById("zebec-card-terminal") as HTMLElement
 );
 
-root.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <SolanaWalletAdapterProvider>
-        {/* <WagmiProvider> */}
-        <StepProvider>
-          <FormProvider>
-            <App />
-            <ConnectWallet />
-            <SignTransaction />
-            <Toasts />
-          </FormProvider>
-        </StepProvider>
-        {/* </WagmiProvider> */}
-      </SolanaWalletAdapterProvider>
-    </Provider>
-  </React.StrictMode>
-);
-
+// root.render(
+//   <React.StrictMode>
+//     <Provider store={store}>
+//       <SolanaWalletAdapterProvider>
+//         {/* <WagmiProvider> */}
+//         <StepProvider>
+//           <FormProvider>
+//             <App />
+//             <ConnectWallet />
+//             <SignTransaction />
+//             <Toasts />
+//           </FormProvider>
+//         </StepProvider>
+//         {/* </WagmiProvider> */}
+//       </SolanaWalletAdapterProvider>
+//     </Provider>
+//   </React.StrictMode>
+// );
+export const init = (config: any) => {
+  root.render(
+    <React.StrictMode>
+      <Provider store={store}>
+        <SolanaWalletAdapterProvider>
+          <StepProvider>
+            <FormProvider>
+              <App />
+              <ConnectWallet />
+              <SignTransaction />
+              <Toasts />
+            </FormProvider>
+          </StepProvider>
+        </SolanaWalletAdapterProvider>
+      </Provider>
+    </React.StrictMode>
+    // document.querySelector(config.selector || "#zebec-card-terminal")
+  );
+};
+// init({});
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals

@@ -77,6 +77,8 @@ const config: Configuration = {
     },
   },
   output: {
+    library: "ZebecCard",
+    libraryTarget: "umd",
     filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
   },
