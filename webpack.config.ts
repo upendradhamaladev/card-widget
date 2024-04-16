@@ -6,10 +6,6 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin";
 
 const config: Configuration = {
   mode: "production",
-  // (process.env.REACT_APP_NODE_ENV as
-  //   | "production"
-  //   | "development"
-  //   | undefined) ?? "development",
   entry: "./src/index.tsx",
   module: {
     rules: [
@@ -81,6 +77,7 @@ const config: Configuration = {
     libraryTarget: "umd",
     filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
+    umdNamedDefine: true,
   },
   plugins: [
     new CopyWebpackPlugin({

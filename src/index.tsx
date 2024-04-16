@@ -18,25 +18,8 @@ const root = ReactDOM.createRoot(
   document.getElementById("zebec-card-terminal") as HTMLElement
 );
 
-// root.render(
-//   <React.StrictMode>
-//     <Provider store={store}>
-//       <SolanaWalletAdapterProvider>
-//         {/* <WagmiProvider> */}
-//         <StepProvider>
-//           <FormProvider>
-//             <App />
-//             <ConnectWallet />
-//             <SignTransaction />
-//             <Toasts />
-//           </FormProvider>
-//         </StepProvider>
-//         {/* </WagmiProvider> */}
-//       </SolanaWalletAdapterProvider>
-//     </Provider>
-//   </React.StrictMode>
-// );
 export const init = (config: any) => {
+  console.log("here is this config", config);
   root.render(
     <React.StrictMode>
       <Provider store={store}>
@@ -52,10 +35,6 @@ export const init = (config: any) => {
         </SolanaWalletAdapterProvider>
       </Provider>
     </React.StrictMode>
-    // document.querySelector(config.selector || "#zebec-card-terminal")
   );
 };
 // init({});
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
