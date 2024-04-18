@@ -54,7 +54,7 @@ const GiftCardForm = () => {
   };
 
   useEffect(() => {
-    if (getvalue("country") && getvalue("currency")) {
+    if (getvalue("country") && getvalue("currency") && socket) {
       socket.emit("listCards", {
         country: getvalue("country"),
         currency: getvalue("currency"),

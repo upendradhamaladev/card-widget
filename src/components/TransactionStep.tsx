@@ -6,7 +6,7 @@ import {
   CustomInputField,
   CustomTokensDropDownSelect,
 } from "../shared/inputs/CustomInputForm";
-import { useAppDispatch, useFormHook, useStep } from "../hooks";
+import { useAppDispatch, useConfigHook, useFormHook, useStep } from "../hooks";
 import {
   setWalletModal,
   showTransactionProcessingModal,
@@ -39,6 +39,7 @@ export type FormValue = {
 };
 const TransactionStep = () => {
   const usdcAddress = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+  const { slippagePercent } = useConfigHook();
   const { isSigned } = useAppSelector((state) => state.common);
   // window.Buffer = buffer.Buffer;
   const { setFormValues, formValues } = useFormHook();
@@ -55,13 +56,15 @@ const TransactionStep = () => {
     const listTokens = (message: any) => {
       setTokens(message);
     };
-
-    socket.on("listTokens", listTokens);
-
+    if (socket) {
+      socket.on("listTokens", listTokens);
+    }
     return () => {
-      socket.off("listTokens", listTokens);
+      if (socket) {
+        socket.off("listTokens", listTokens);
+      }
     };
-  }, []);
+  }, [socket]);
   const { publicKey, connected: solanaConnected } = useWallet();
 
   const {
@@ -78,15 +81,14 @@ const TransactionStep = () => {
   const getvalue = (name: any) => {
     return getValues(name);
   };
+  const { rpcUrl } = useConfigHook();
 
   const wallet = useWallet(); // Note: only in frontend. Use `Wallet` from anchor to create wallet instance for backends.
   // let service: ZebecCardService;
   const [service, setService] = useState<ZebecCardService | null>(null);
   const initializeSdk = () => {
     let serviceTemp: ZebecCardService;
-    const connection = new Connection(
-      process.env.REACT_APP_RPC_URL || clusterApiUrl("mainnet-beta")
-    );
+    const connection = new Connection(rpcUrl || clusterApiUrl("mainnet-beta"));
     const provider = getAnchorProvider(connection, wallet as any, {});
     const program = ZebecCardProgramFactory.getProgram(provider);
     const instructions = new ZebecCardInstructions(program);
@@ -103,7 +105,7 @@ const TransactionStep = () => {
     if (wallet) {
       initializeSdk();
     }
-  }, [wallet]);
+  }, [wallet, rpcUrl]);
   const amountValidator = useMemo(() => {
     {
       return {
@@ -147,7 +149,9 @@ const TransactionStep = () => {
       socket.on("purchaseCard", purchaseCard);
     }
     return () => {
-      socket.off("purchaseCard", purchaseCard);
+      if (socket) {
+        socket.off("purchaseCard", purchaseCard);
+      }
     };
   }, [socket]);
   const orderReceived = (message: any) => {
@@ -169,7 +173,9 @@ const TransactionStep = () => {
       socket.on("orderReceived", orderReceived);
     }
     return () => {
-      socket.off("orderReceived", orderReceived);
+      if (socket) {
+        socket.off("orderReceived", orderReceived);
+      }
     };
   }, [socket]);
   const tokenTypeFinder = (tokenSymbol: string) => {
@@ -196,6 +202,7 @@ const TransactionStep = () => {
 
       let onlyAmt = formValues.amount.slice(1);
       let payload: any;
+      console.log("only amt is", onlyAmt);
 
       try {
         if (getvalue("token") === "USDC" || formValues.token === "USDC") {
@@ -203,7 +210,7 @@ const TransactionStep = () => {
             buyerAddress: publicKey?.toString() ?? "",
             buyerCounter,
             cardType: formValues.productId.toString(),
-            amount: onlyAmt,
+            amount: "0.0001",
             tokenType:
               getvalue("token") &&
               tokenTypeFinder(getvalue("token"))?.token_type
@@ -214,8 +221,6 @@ const TransactionStep = () => {
           };
           payload = await service.deposit(paramsForUSDC);
         } else {
-          // let onlyAmt = formValues.amount.slice(1);
-
           paramsForOthers = {
             buyerAddress: publicKey?.toString() ?? "",
             buyerCounter,
@@ -224,8 +229,8 @@ const TransactionStep = () => {
               getvalue("token") && tokenTypeFinder(getvalue("token"))?.mint
                 ? tokenTypeFinder(getvalue("token"))?.mint
                 : formValues.token && tokenTypeFinder(formValues.token)?.mint,
-            inputAmount: onlyAmt,
-            slippagePercent: process.env.REACT_APP_SLIPPAGE_PERCENT ?? "",
+            inputAmount: "0.0001",
+            slippagePercent: slippagePercent.toString() ?? "",
             tokenType: tokenTypeFinder(formValues.token)?.token_type ?? "",
             outputMintAddress: usdcAddress,
           };
@@ -245,14 +250,15 @@ const TransactionStep = () => {
             setFormValues((prev) => {
               return { ...prev, transactionHash: signature };
             });
-            socket.emit("purchaseCard", {
-              transactionHash: signature,
-              buyerCounter: buyerCounter,
-              amount: onlyAmt,
-              buyerWallet: publicKey?.toString() ?? "",
-              cardProductId: formValues.productId,
-              token: tokenTypeFinder(formValues.token)?.symbol ?? "",
-            });
+            if (socket)
+              socket.emit("purchaseCard", {
+                transactionHash: signature,
+                buyerCounter: buyerCounter,
+                amount: onlyAmt,
+                buyerWallet: publicKey?.toString() ?? "",
+                cardProductId: formValues.productId,
+                token: tokenTypeFinder(formValues.token)?.symbol ?? "",
+              });
           }
         }
         setLoading(false);
@@ -315,7 +321,7 @@ const TransactionStep = () => {
         const params: GetQuoteInfoParams = {
           inputAmount: onlyAmt,
           inputMintAddress: tokenTypeFinder(getvalue("token"))?.mint ?? "",
-          slippagePercent: process.env.REACT_APP_SLIPPAGE_PERCENT ?? "",
+          slippagePercent: slippagePercent.toString() ?? "",
           outputMintAddress: usdcAddress,
         };
         getTokenAmount(params);
@@ -324,7 +330,7 @@ const TransactionStep = () => {
         // trigger
       }
     }
-  }, [watch("amount"), watch("token"), service, tokens]);
+  }, [watch("amount"), watch("token"), service, tokens, slippagePercent]);
   return (
     <>
       {console.log("get is", getvalue("amount"), getvalue("tokenamount"))}
@@ -481,7 +487,7 @@ const TransactionStep = () => {
                 Transaction Fee
               </span>
               <span className="text-xs !leading-[14px] font-medium text-zebec-card-content-primary">
-                {process.env.REACT_APP_SLIPPAGE_PERCENT ?? "0"}%
+                {slippagePercent.toString() ?? "0"}%
               </span>
             </div>
           </div>

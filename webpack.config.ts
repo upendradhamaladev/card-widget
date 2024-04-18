@@ -7,6 +7,7 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin";
 const config: Configuration = {
   mode: "production",
   entry: "./src/index.tsx",
+  devtool: "source-map",
   module: {
     rules: [
       {
@@ -72,9 +73,10 @@ const config: Configuration = {
       os: require.resolve("os-browserify/browser"),
     },
   },
+  target: "web",
   output: {
     library: "ZebecCard",
-    libraryTarget: "umd",
+    libraryTarget: "window",
     filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
     umdNamedDefine: true,
